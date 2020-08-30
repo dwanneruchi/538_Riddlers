@@ -10,7 +10,7 @@ def mp_process():
 
     total_games = [] # empty list to store results
 
-    
+
     for i in range(n):
         deck = np.tile(np.arange(13),4) # build 52 total integers of 0-12; initial deck
         outcome = 0
@@ -55,7 +55,9 @@ def war_game_simple(deck): # Function is compiled to machine code when called th
 
 if __name__ == '__main__':
 
-    
+    """Using multiprocessing since GIL will block actual multithreading that exists in other languages
+    Just going to sum up performances across each at the end & find the mean over N*core runs
+    """
 
     # multiprocessing component
     p1 = multiprocessing.Process(target=mp_process)
