@@ -34,19 +34,17 @@ def mp_process():
     for j in range(tot_core_sims):
         
         exceeds, winner = faster_game(bin_cdf_dict)
-        
-        # out of loop
-        if exceeds:
-            tot_games += 1
+        tot_games += 1
 
-            if winner == False:
-                super_loser += 1
+        # out of loop
+        if exceeds and winner == False:
+            super_loser += 1
         
         if (j+1) % 1000000 == 0:
             print(f"Iteration {j+1}:")
-            print(f"\tTotal games with > 0.99: {tot_games}")
-            print(f"\tSuper loser games: {super_loser}")
-            print(f"\tPercent: {100 * super_loser / tot_games:.2f}")
+            print(f"\tTotal games: {tot_games}")
+            print(f"\tGames where p >= 0.99 & loss: {super_loser}")
+            print(f"\tPercent: {100 * super_loser / tot_games:.6f}")
     
     # store in unique text based on PID
     with open(out_filename, 'a') as out_file:
@@ -86,14 +84,13 @@ def faster_game(bin_cdf):
             winner = True
         
         ### Solve for likelihood of getting needed_heads or more based on remaining turns
-        k = needed_heads # whats the likelihood of getting up to needed heads but not over; 
+        k = max(0, needed_heads) # whats the likelihood of getting up to needed heads but not over; we can't find negatives, would just be 100%
         n = turns_left
 
-        if k >= 0:
-            # binom.cdf calculates P(X <= k)
-            p = bin_cdf.get((k,n))
-            if p >= 0.99:
-                exceeds = True
+        # binom.cdf calculates P(X <= k)
+        p = bin_cdf.get((k,n))
+        if p >= 0.99:
+            exceeds = True
             
     return exceeds, winner
 
