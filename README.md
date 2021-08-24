@@ -16,5 +16,14 @@ Location for 538 riddler problems
 - Able to install a requirements.txt file or just install individual libraries
 `pip install -m pandas`
 
+### Adding Julyter Notebook
+
+```
+pip install -m ipykernel
+pip install -m jupyter
+python -m ipykernel install --user --name=fte
+jupyter notebook
+```
+
 ## Poetry - This Is Cooler
 <in progress>
