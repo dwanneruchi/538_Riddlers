@@ -29,7 +29,7 @@ final_guess = position_dict[4].union(position_dict[5])
 print(f"Candidate starting guesses include {len(final_guess)} words")
 
 # Limit mystery word validation to a subset until top words are found
-sample_mystery = random.sample(mystery_list, int(round(0.3 * len(mystery_list),0)))
+sample_mystery = random.sample(mystery_list, int(round(0.2 * len(mystery_list),0)))
 print(f"Validation mystery count is {len(sample_mystery)} words")
 
 # Let's try some sample words:
@@ -40,13 +40,18 @@ optimalstrategy(guess = guess, mystery_word = mystery, guess_list = guess_list,
                 mystery_list = mystery_list, pos_counter=pos_counter, guesses = 3)
 
 # # Run on sample:
-# start = time.time()
-words_checked = 1
+start = time.time()
+
 # # sample process:
-# win_tracker = {}
-win = 0
-guess = 'crate'
-for mystery_word in sample_mystery:
-    win += optimalstrategy(guess=guess, mystery_word=mystery_word, guess_list=guess_list, mystery_list=mystery_list, pos_counter=pos_counter, guesses=3)
-#
-print(f"Win percent: {win/len(sample_mystery):.5f}")
+win_tracker = {}
+
+for guess in final_guess:
+    win = 0
+    for mystery_word in sample_mystery:
+        win += optimalstrategy(guess=guess, mystery_word=mystery_word, guess_list=guess_list, mystery_list=mystery_list, pos_counter=pos_counter, guesses=3)
+    win_tracker[guess] = win
+
+print(f"Total time: {time.time() - start:.3f}")
+top_word = max(win_tracker, key=win_tracker.get)
+win_p = win_tracker[top_word] / len(sample_mystery)
+print(f"Win prob is: {win_p:.5f} with top word {top_word}")
