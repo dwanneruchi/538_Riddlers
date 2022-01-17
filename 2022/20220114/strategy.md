@@ -26,10 +26,14 @@ Nothing impressive here, the best solution I saw was able to achieve around a 60
 
 ### Success Rate for 3 guesses or less
 - Sample pass on 15:
-  - `prost` was able to correctly determine the word 38.0% of the time in <= 3 steps.
+  - `crate` was able to correctly determine the word 41.5.0% of the time in <= 3 steps.
 - Sample pass on 20%: 
   - `orant` was able to correctly determine the mystery word 39.1% of the time in <= 3 steps.
 - Top performance over all mystery words:
-  - `saint` was able to correctly determine the mystery word `35.9%` of the time in <= 3 steps.
+  - `slant` was able to correctly determine the mystery word `36.5%` of the time in <= 3 steps.
 
 ### Success Rate for 4, 5 and 6 guesses: Top performance
+
+- 4 guesses: 70.4% - `clast` 
+- 5 guesses: 87.2% - `slant`
+- 6 guesses: 95.2% - `canst`
