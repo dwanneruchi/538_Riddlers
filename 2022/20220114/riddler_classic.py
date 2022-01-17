@@ -1,8 +1,6 @@
 import pandas as pd
 import random
-from collections import defaultdict, Counter
-from functions import excludeChars, includeChars, properPos, improperPos, charRemoveWords, idxRemoveWords, \
-    nextGuessDistinct, nextGuessFrequent, preprocess, limit_guess, optimalPosChoice, optimalstrategy
+from functions import preprocess, limit_guess, optimalstrategy
 import time
 
 # read in mystery words
@@ -37,7 +35,7 @@ print(f"Validation mystery count is {len(sample_mystery)} words")
 # Let's try some sample words:
 guess = 'dreks'
 mystery = 'dross'
-print(f"Mystery word is: {mystery}")
+#print(f"Mystery word is: {mystery}")
 optimalstrategy(guess = guess, mystery_word = mystery, guess_list = guess_list,
                 mystery_list = mystery_list, pos_counter=pos_counter, guesses = 3)
 
@@ -49,6 +47,6 @@ words_checked = 1
 win = 0
 guess = 'crate'
 for mystery_word in sample_mystery:
-    win += optimalstrategy(guess=guess, mystery_word=mystery_word, guess_list=guess_list, mystery_list=mystery_list, pos_counter=pos_counter, guesses=4)
+    win += optimalstrategy(guess=guess, mystery_word=mystery_word, guess_list=guess_list, mystery_list=mystery_list, pos_counter=pos_counter, guesses=3)
 #
 print(f"Win percent: {win/len(sample_mystery):.5f}")
