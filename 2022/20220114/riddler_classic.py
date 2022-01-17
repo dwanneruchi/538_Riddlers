@@ -44,9 +44,16 @@ start = time.time()
 
 # # sample process:
 win_tracker = {}
-
+words_checked = 1
 for guess in final_guess:
     win = 0
+    if words_checked % 10 == 0:
+        print(f"Checked a total of {words_checked} words")
+        print(f"Total time so far: {time.time() - start:.3f}")
+        top_word = max(win_tracker, key=win_tracker.get)
+        win_p = win_tracker[top_word] / len(sample_mystery)
+        print(f"Max win prob so far is: {win_p:.5f} with top word {top_word}")
+
     for mystery_word in sample_mystery:
         win += optimalstrategy(guess=guess, mystery_word=mystery_word, guess_list=guess_list, mystery_list=mystery_list, pos_counter=pos_counter, guesses=3)
     win_tracker[guess] = win
