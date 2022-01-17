@@ -25,8 +25,10 @@ for i in range(6):
         continue
 
 # Limit to the top matches
-final_guess = position_dict[4].union(position_dict[5])
+final_guess = position_dict[3].union(position_dict[4].union(position_dict[5]))
 print(f"Candidate starting guesses include {len(final_guess)} words")
+
+print(f"Is trace here: {'trace' in final_guess}")
 
 # Limit mystery word validation to a subset until top words are found
 sample_mystery = random.sample(mystery_list, int(round(0.2 * len(mystery_list),0)))
@@ -40,4 +42,4 @@ guess = 'trace'
 mystery = 'cacao'
 #print(f"Mystery word is: {mystery}")
 optimalstrategyTest(guess = guess, mystery_word = mystery, guess_list = guess_list,
-                mystery_list = mystery_list, pos_counter=pos_counter, guesses = 3, debug = True)
+                mystery_list = mystery_list, pos_counter=pos_counter, guesses = 3, debug = False)

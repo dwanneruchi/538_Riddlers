@@ -2,6 +2,7 @@ import pandas as pd
 import random
 from functions import preprocess, limit_guess, optimalstrategy, optimalstrategyTest
 import time
+import pickle
 
 # read in mystery words
 mystery_corpus = pd.read_csv("data/mystery_words.csv", header=None)
@@ -24,20 +25,13 @@ for i in range(6):
     except KeyError:
         continue
 
-# Limit to the top matches
+# Limit to the top matches -> helps speed things up
 final_guess = position_dict[4].union(position_dict[5])
 print(f"Candidate starting guesses include {len(final_guess)} words")
 
 # Limit mystery word validation to a subset until top words are found
-sample_mystery = random.sample(mystery_list, int(round(0.2 * len(mystery_list),0)))
+sample_mystery = random.sample(mystery_list, int(round(0.15 * len(mystery_list),0)))
 print(f"Validation mystery count is {len(sample_mystery)} words")
-
-# Let's try some sample words:
-guess = 'dreks'
-mystery = 'dross'
-#print(f"Mystery word is: {mystery}")
-optimalstrategy(guess = guess, mystery_word = mystery, guess_list = guess_list,
-                mystery_list = mystery_list, pos_counter=pos_counter, guesses = 3)
 
 # # Run on sample:
 start = time.time()
@@ -47,7 +41,7 @@ win_tracker = {}
 words_checked = 1
 for guess in final_guess:
     win = 0
-    if words_checked % 20 == 0:
+    if words_checked % 25 == 0:
         print(f"Checked a total of {words_checked} words")
         print(f"Total time so far: {time.time() - start:.3f}")
         top_word = max(win_tracker, key=win_tracker.get)
@@ -60,7 +54,26 @@ for guess in final_guess:
 
     words_checked += 1
 
-print(f"Total time: {time.time() - start:.3f}")
 top_word = max(win_tracker, key=win_tracker.get)
 win_p = win_tracker[top_word] / len(sample_mystery)
+print(f"Top win prob on sample was: {win_p:.5f} with top word {top_word}")
+
+# get top 10 words from sample run - will iterate through all words for these to find final winner
+start = time.time()
+top_word_list = [x[0] for x in sorted(win_tracker.items(), key=lambda x: x[1], reverse=True)[:10]]
+print(f"Reviewing peformance for {len(top_word_list)} words")
+
+with open('top_ten.pkl', 'wb') as f:
+    pickle.dump(top_word_list, f)
+
+win_tracker = {}
+for guess in top_word_list:
+    win = 0
+    for mystery_word in mystery_list:
+        win += optimalstrategyTest(guess=guess, mystery_word=mystery_word, guess_list=guess_list, mystery_list=mystery_list, pos_counter=pos_counter, guesses=3)
+    win_tracker[guess] = win
+
+print(f"Total time: {time.time() - start:.3f}")
+top_word = max(win_tracker, key=win_tracker.get)
+win_p = win_tracker[top_word] / len(mystery_list)
 print(f"Win prob is: {win_p:.5f} with top word {top_word}")
