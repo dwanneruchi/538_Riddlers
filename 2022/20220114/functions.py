@@ -106,11 +106,11 @@ def charRemoveWords(ex_set, in_set, guess_words):
         # check if illicit chars are in guess, then remove
         ex_len = len([char for char in guess if char in ex_set])
 
-        # check if we have eligible chars, if not remove
-        in_len = len([char for char in guess if char in in_set])
+        # determine how many of the required chars in the word - needs to match (set gives distinct)
+        in_len = set([char for char in guess if char in in_set])
 
-        # ensure 0 ex_len and > 0 in_len
-        if (ex_len == 0) and (in_len >= len(in_set)):
+        # ensure 0 ex_len
+        if (ex_len == 0) and (len(in_len) == len(in_set)):
             new_set.add(guess)
         else:
             continue
@@ -241,6 +241,117 @@ def optimalPosChoice(pos_counter, guess_list, proper_pos):
     except ValueError:
         return set() # return empty set
 
+def optimalstrategyTest(guess, mystery_word, guess_list, mystery_list, pos_counter, guesses=3, debug=False):
+    """
+    Single word process includes:
+    - establishing params
+    - general character set build:
+        - chars not in word (wrong guesses)
+        - chars in word
+        - chars in word in wrong position
+        - chars in word in correct position
+    - apply information from above to whittle set down:
+        - remove guess words that have any exclude chars or are missing any include chars
+        - remove guess words that have improper indices
+    - making a guess:
+        - utilize filtered guest words
+        - maximize words that a)
+    - on last step need to intersect with mystery list (per Zach's twitter comment) to ensure a mystery
+      word is being used as a guess
+
+    Return 1 for a win and 0 for a loss
+    """
+    exclude_chars = set()  # words can't include these
+    include_chars = set()  # words need to include these
+    proper_pos = defaultdict(
+        set)  # stores the proper indices for a letter
+    improper_pos = defaultdict(
+        set)  # stores the improper indices for a letter
+    i = 0
+    guess_words = guess_list.copy()
+    if debug:
+        print(f"Mystery word: {mystery_word}")
+        print(f"Initial guess: {guess}")
+
+    while i < guesses:
+        if guess == mystery_word:
+            return 1
+
+        # remove guess from guess words
+        guess_words.remove(guess)
+
+        # not accepted:
+        exclude_chars.update(excludeChars(guess, mystery_word))
+
+        # accepted:
+        include_chars.update(includeChars(guess, mystery_word))
+
+        if debug:
+            print(f"Exclude chars: {exclude_chars}")
+            print(f"Include chars: {include_chars}")
+
+        # proper pos
+        temp_dict = properPos(guess, mystery_word)
+        for k, v in temp_dict.items():
+            proper_pos[k] = proper_pos[k].union(v)
+
+        # improper pos
+        temp_dict = improperPos(guess, mystery_word)
+        for k, v in temp_dict.items():
+            improper_pos[k] = improper_pos[k].union(v)
+
+        # Move into reduce step
+        # we first reduce our set of words down based on excluded & included chars
+        new_words = charRemoveWords(exclude_chars, include_chars, guess_words)
+        if debug:
+            print(f"char reduce on guess {i+1} drops from {len(guess_words)} to {len(new_words)}")
+
+        # we then reduce our set of words down based on proper & improper indices
+        guess_words = idxRemoveWords(proper_pos, improper_pos, new_words)
+        if debug:
+            print(f"pos reduce on guess {i + 1} drops from {len(new_words)} to {len(guess_words)}")
+
+        ### Determine next guess
+        # optimal position strategy
+        opt_guess = optimalPosChoice(pos_counter, guess_words, proper_pos)
+        if debug:
+            print(f"Total opt guesses for guess {i + 2}: {opt_guess}")
+
+        # determine guesses with most unexplored vowels
+        div_guesses = nextGuessFrequent(include_chars, {'a', 'e', 'i', 'o', 'u', 'y'}, guess_words)
+        if debug:
+            print(f"Total div guesses for guess {i + 2}: {div_guesses}")
+
+        # see if we have overlap between div_guesses and top_guesses
+        best_guesses = div_guesses.intersection(opt_guess)
+        if debug:
+            print(f"Best guesses for guess {i+2}: {best_guesses}")
+
+        # Zach on Twitter approved of this step: reference mystery list to ensure we output a proper word
+        if i == (guesses - 2):
+
+            # no optimal strat - just pick from eligible words left
+            pick_set = guess_words.intersection(set(mystery_list))
+            try:
+                guess = random.choice(tuple(pick_set))
+            except IndexError:
+                guess = random.choice(tuple(mystery_list))
+            if debug:
+                print(f"Final set: {pick_set}")
+                print(f"Final guess: {guess}")
+            return guess == mystery_word
+        elif len(best_guesses) > 0:
+            guess = random.choice(tuple(best_guesses))
+        else:
+            guess = random.choice(tuple(div_guesses)) # this is super random
+
+        if debug:
+            if i < guesses:
+                print(f"Next guess: {guess}")
+        i += 1
+    return 0
+
+
 def optimalstrategy(guess, mystery_word, guess_list, mystery_list, pos_counter, guesses=3):
     """
     Single word process includes:
@@ -295,19 +406,14 @@ def optimalstrategy(guess, mystery_word, guess_list, mystery_list, pos_counter, 
         for k, v in temp_dict.items():
             improper_pos[k] = improper_pos[k].union(v)
 
-        # Debugger:
-        #print(proper_pos)
-        #print(improper_pos)
-        #print(include_chars)
-        #print(exclude_chars)
-
         # Move into reduce step
         # we first reduce our set of words down based on excluded & included chars
         new_words = charRemoveWords(exclude_chars, include_chars, guess_words)
+        #print(f"char reduce on guess {i+1} drops from {len(guess_words)} to {len(new_words)}")
 
         # we then reduce our set of words down based on proper & improper indices
         guess_words = idxRemoveWords(proper_pos, improper_pos, new_words)
-        #print(guess_words)
+        #print(f"pos reduce on guess {i + 1} drops from {len(new_words)} to {len(guess_words)}")
 
         ### Determine next guess
         # optimal position strategy
@@ -321,16 +427,23 @@ def optimalstrategy(guess, mystery_word, guess_list, mystery_list, pos_counter, 
         #print(f"Best guesses: {best_guesses}")
 
         # Zach on Twitter approved of this step
+        # TODO: This is super ugly - really need to clean this
         if i == (guesses - 2):
-            # last guess so needs to be a mystery word
-            pick_set = guess_words.intersection(set(mystery_list))
-            guess = random.choice(tuple(pick_set))
-            #print(f"Last guess: {guess}")
+            if len(opt_guess) > 0:
+                pick_set = opt_guess.intersection(set(mystery_list))
+                try:
+                    guess = random.choice(tuple(pick_set))
+                except IndexError:
+                    guess = random.choice(tuple(mystery_list))
+            else:
+                pick_set = guess_words.intersection(set(mystery_list)) # TODO some bug
+                guess = random.choice(tuple(pick_set))
+
             return guess == mystery_word
         elif len(best_guesses) > 0:
             guess = random.choice(tuple(best_guesses))
         else:
-            guess = random.choice(tuple(div_guesses))
+            guess = random.choice(tuple(guess_words)) # this is super random
 
         #if i < guesses:
             #print(f"Next guess: {guess}")
