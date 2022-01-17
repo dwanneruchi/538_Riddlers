@@ -1,6 +1,6 @@
 import pandas as pd
 import random
-from functions import preprocess, limit_guess, optimalstrategy
+from functions import preprocess, limit_guess, optimalstrategy, optimalstrategyTest
 import time
 
 # read in mystery words
@@ -55,7 +55,7 @@ for guess in final_guess:
         print(f"Max win prob so far is: {win_p:.5f} with top word {top_word}")
 
     for mystery_word in sample_mystery:
-        win += optimalstrategy(guess=guess, mystery_word=mystery_word, guess_list=guess_list, mystery_list=mystery_list, pos_counter=pos_counter, guesses=3)
+        win += optimalstrategyTest(guess=guess, mystery_word=mystery_word, guess_list=guess_list, mystery_list=mystery_list, pos_counter=pos_counter, guesses=3)
     win_tracker[guess] = win
 
     words_checked += 1
